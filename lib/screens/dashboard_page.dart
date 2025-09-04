@@ -1,40 +1,69 @@
 import 'package:flutter/material.dart';
+import 'package:financedashboard/shared/constants/colors.dart';
+import 'package:financedashboard/shared/widgets/atoms/app_button.dart';
+import 'package:financedashboard/shared/widgets/molecules/finance_info_card.dart';
 
 class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+  const DashboardPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Dashboard")),
+      appBar: AppBar(
+        title: const Text("Dashboard"),
+        backgroundColor: AppColors.primary,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            Text("Resumo Financeiro", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
-            Card(
-              child: ListTile(
-                leading: Icon(Icons.account_balance_wallet, color: Colors.blue[700]),
-                title: Text("Saldo Atual"),
-                subtitle: Text("R\$ 12.345,67"),
+            Semantics(
+              header: true,
+              label: 'Resumo Financeiro',
+              child: Text(
+                "Resumo Financeiro",
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
-            SizedBox(height: 12),
-            Card(
-              child: ListTile(
-                leading: Icon(Icons.arrow_upward, color: Colors.green),
-                title: Text("Entradas"),
-                subtitle: Text("R\$ 7.890,00"),
-              ),
+            const SizedBox(height: 20),
+            FinanceInfoCard(
+              icon: Icons.account_balance_wallet,
+              title: "Saldo Atual",
+              subtitle: "R\$ 12.345,67",
+              iconColor: AppColors.primary,
+              semanticsLabel: 'Saldo atual da conta',
             ),
-            SizedBox(height: 12),
-            Card(
-              child: ListTile(
-                leading: Icon(Icons.arrow_downward, color: Colors.red),
-                title: Text("Saídas"),
-                subtitle: Text("R\$ 5.432,00"),
-              ),
+            const SizedBox(height: 12),
+            FinanceInfoCard(
+              icon: Icons.arrow_upward,
+              title: "Entradas",
+              subtitle: "R\$ 7.890,00",
+              iconColor: AppColors.success,
+              semanticsLabel: 'Entradas financeiras',
+            ),
+            const SizedBox(height: 12),
+            FinanceInfoCard(
+              icon: Icons.arrow_downward,
+              title: "Saídas",
+              subtitle: "R\$ 5.432,00",
+              iconColor: AppColors.error,
+              semanticsLabel: 'Saídas financeiras',
+            ),
+            const SizedBox(height: 24),
+            AppButton(
+              label: "Atualizar",
+              icon: Icons.refresh,
+              color: AppColors.accent,
+              semanticsLabel: 'Botão para atualizar o dashboard',
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Dashboard atualizado!')),
+                );
+              },
             ),
           ],
         ),

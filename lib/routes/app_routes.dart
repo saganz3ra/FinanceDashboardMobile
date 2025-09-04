@@ -8,9 +8,9 @@ class AppRoutes {
   static const String login = '/login';
   static const String dashboard = '/dashboard';
 
-  static Map<String, WidgetBuilder> routes = {
-    home: (context) => HomePage(),
-    login: (context) => LoginPage(),
-    dashboard: (context) => DashboardPage(),
-  };
+  static Map<String, WidgetBuilder> get routes => {
+        home: (context) => const HomePage(),
+        login: (context) => const LoginPage(),
+        dashboard: (context) => const DashboardPage(), // agora funciona
+      };
 }

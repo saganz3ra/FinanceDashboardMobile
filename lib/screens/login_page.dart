@@ -1,37 +1,57 @@
 import 'package:flutter/material.dart';
+import '../shared/widgets/atoms/app_button.dart';
+import '../shared/widgets/atoms/app_text_field.dart';
+import '../shared/constants/colors.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Login")),
+      appBar: AppBar(
+        title: const Text("Login"),
+        backgroundColor: AppColors.primary,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Faça seu login", style: TextStyle(fontSize: 20)),
-            SizedBox(height: 20),
-            TextField(
-              decoration: InputDecoration(
-                labelText: "Email",
-                border: OutlineInputBorder(),
+            Semantics(
+              header: true,
+              label: 'Faça seu login',
+              child: Text(
+                "Faça seu login",
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            SizedBox(height: 16),
-            TextField(
+            const SizedBox(height: 20),
+            const AppTextField(
+              label: "Email",
+              semanticsLabel: 'Campo de email',
+            ),
+            const SizedBox(height: 16),
+            const AppTextField(
+              label: "Senha",
               obscureText: true,
-              decoration: InputDecoration(
-                labelText: "Senha",
-                border: OutlineInputBorder(),
-              ),
+              semanticsLabel: 'Campo de senha',
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {},
-              child: Text("Entrar"),
+            const SizedBox(height: 20),
+            AppButton(
+              label: "Entrar",
+              icon: Icons.login,
+              color: AppColors.primary,
+              semanticsLabel: 'Botão para entrar',
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Login realizado!')),
+                );
+              },
             ),
           ],
         ),
