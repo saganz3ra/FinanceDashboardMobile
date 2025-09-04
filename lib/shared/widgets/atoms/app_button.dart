@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants/colors.dart';
 import '../../constants/sizes.dart';
 
-class AppButton extends StatelessWidget {
+class AppButton extends StatefulWidget {
   final String label;
   final VoidCallback onPressed;
   final IconData? icon;
@@ -19,37 +19,64 @@ class AppButton extends StatelessWidget {
   });
 
   @override
+  State<AppButton> createState() => _AppButtonState();
+}
+
+class _AppButtonState extends State<AppButton> {
+  bool _hovering = false;
+
+  @override
   Widget build(BuildContext context) {
+    final buttonColor = widget.color ?? AppColors.primary;
+    final hoverColor = buttonColor.withOpacity(0.85);
     return Semantics(
       button: true,
-      label: semanticsLabel ?? label,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(AppSizes.borderRadius),
-        splashColor: (color ?? AppColors.primary).withOpacity(0.2),
-        child: Container(
-          decoration: BoxDecoration(
-            color: color ?? AppColors.primary,
-            borderRadius: BorderRadius.circular(AppSizes.borderRadius),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSizes.paddingMedium,
-            vertical: AppSizes.paddingSmall,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null)
-                Icon(icon, color: Colors.white, size: AppSizes.iconSize),
-              if (icon != null) const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+      label: widget.semanticsLabel ?? widget.label,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovering = true),
+        onExit: (_) => setState(() => _hovering = false),
+        child: InkWell(
+          onTap: widget.onPressed,
+          borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+          splashColor: buttonColor.withOpacity(0.2),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            decoration: BoxDecoration(
+              color: _hovering ? hoverColor : buttonColor,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+              boxShadow: _hovering
+                  ? [
+                      BoxShadow(
+                        color: buttonColor.withOpacity(0.25),
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ]
+                  : [],
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.paddingMedium,
+              vertical: AppSizes.paddingSmall,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.icon != null)
+                  Icon(
+                    widget.icon,
+                    color: Colors.white,
+                    size: AppSizes.iconSize,
+                  ),
+                if (widget.icon != null) const SizedBox(width: 8),
+                Text(
+                  widget.label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

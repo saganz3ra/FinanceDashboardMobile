@@ -8,13 +8,13 @@ class FinanceInfoCard extends StatelessWidget {
   final String semanticsLabel;
 
   const FinanceInfoCard({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.iconColor,
     required this.semanticsLabel,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

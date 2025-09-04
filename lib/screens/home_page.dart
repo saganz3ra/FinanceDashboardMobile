@@ -4,7 +4,7 @@ import '../shared/widgets/atoms/app_button.dart';
 import '../shared/constants/colors.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {

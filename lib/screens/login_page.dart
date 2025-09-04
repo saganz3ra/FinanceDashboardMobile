@@ -4,7 +4,7 @@ import '../shared/widgets/atoms/app_text_field.dart';
 import '../shared/constants/colors.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
