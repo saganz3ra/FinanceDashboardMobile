@@ -1,5 +1,22 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+
+class CurrencyService {
+  static Future<double> getDollarValue() async {
+    final url = Uri.parse("https://economia.awesomeapi.com.br/json/last/USD-BRL");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final value = double.parse(data["USDBRL"]["bid"]);
+      return value;
+    } else {
+      throw Exception("Erro ao buscar valor do dólar");
+    }
+  }
+}
 
 class Transaction {
   double value;
@@ -30,6 +47,25 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _isIncome = true;
   int? _editingIndex;
 
+  double? _dollarValue;
+  String? _dateError;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> _loadDollarValue() async {
+    try {
+      final value = await CurrencyService.getDollarValue();
+      setState(() {
+        _dollarValue = value;
+      });
+    } catch (e) {
+      debugPrint("Erro ao buscar dólar: $e");
+    }
+  }
+
   void _pickDate(BuildContext context) async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -45,8 +81,6 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  String? _dateError;
-
   void _submit() {
     setState(() {
       _dateError = null;
@@ -59,7 +93,6 @@ class _DashboardPageState extends State<DashboardPage> {
         return;
       }
       final now = DateTime.now();
-      // Se for entrada, não pode ser data futura
       if (_isIncome &&
           _selectedDate!.isAfter(DateTime(now.year, now.month, now.day))) {
         setState(() {
@@ -130,6 +163,15 @@ class _DashboardPageState extends State<DashboardPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            if (_dollarValue != null)
+              Text(
+                "1 USD = R\$ ${_dollarValue!.toStringAsFixed(2)}",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            const SizedBox(height: 16),
             Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
@@ -156,11 +198,13 @@ class _DashboardPageState extends State<DashboardPage> {
                               labelText: 'Valor',
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Informe o valor';
+                              }
                               final val = double.tryParse(v);
-                              if (val == null || val <= 0)
+                              if (val == null || val <= 0) {
                                 return 'Valor inválido';
+                              }
                               return null;
                             },
                           ),
@@ -170,8 +214,9 @@ class _DashboardPageState extends State<DashboardPage> {
                               labelText: 'Descrição',
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Informe a descrição';
+                              }
                               return null;
                             },
                           ),
@@ -187,9 +232,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                   label: Text(
                                     _selectedDate == null
                                         ? 'Escolher Data'
-                                        : DateFormat(
-                                            'dd/MM/yyyy',
-                                          ).format(_selectedDate!),
+                                        : DateFormat('dd/MM/yyyy')
+                                            .format(_selectedDate!),
                                   ),
                                 ),
                                 if (_dateError != null)
@@ -256,6 +300,9 @@ class _DashboardPageState extends State<DashboardPage> {
                       itemCount: _transactions.length,
                       itemBuilder: (context, i) {
                         final t = _transactions[i];
+                        final valueInDollar = (_dollarValue != null)
+                            ? (t.value / _dollarValue!)
+                            : null;
                         return Card(
                           child: ListTile(
                             leading: Icon(
@@ -268,7 +315,9 @@ class _DashboardPageState extends State<DashboardPage> {
                               '${t.isIncome ? 'Entrada' : 'Saída'}: R\$ ${t.value.toStringAsFixed(2)}',
                             ),
                             subtitle: Text(
-                              '${t.description}\n${DateFormat('dd/MM/yyyy').format(t.date)}',
+                              '${t.description}\n'
+                              '${DateFormat('dd/MM/yyyy').format(t.date)}'
+                              '${valueInDollar != null ? '\n≈ US\$ ${valueInDollar.toStringAsFixed(2)}' : ''}',
                             ),
                             isThreeLine: true,
                             trailing: Row(
