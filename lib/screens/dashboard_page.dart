@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import '../shared/widgets/atoms/app_text_field.dart';
+import '../shared/widgets/organisms/transaction_form.dart';
 import '../shared/widgets/molecules/transaction_list_item.dart';
 
 class CurrencyService {
@@ -43,6 +42,32 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  final List<Transaction> _transactions = [];
+  final _formKey = GlobalKey<FormState>();
+  final _valueController = TextEditingController();
+  final _descController = TextEditingController();
+  final _dateController = TextEditingController();
+  DateTime? _selectedDate;
+  bool _isIncome = true;
+  int? _editingIndex;
+  double? _dollarValue;
+  String? _dateError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDollarValue();
+  }
+
+  Future<void> _fetchDollarValue() async {
+    try {
+      final value = await CurrencyService.getDollarValue();
+      setState(() {
+        _dollarValue = value;
+      });
+    } catch (_) {}
+  }
+
   Future<void> _pickDate(BuildContext context) async {
     final now = DateTime.now();
     final initialDate = _selectedDate ?? now;
@@ -72,18 +97,6 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
-  final List<Transaction> _transactions = [];
-  final _formKey = GlobalKey<FormState>();
-  final _valueController = TextEditingController();
-  final _descController = TextEditingController();
-  final _dateController = TextEditingController();
-  DateTime? _selectedDate;
-  bool _isIncome = true;
-  int? _editingIndex;
-
-  double? _dollarValue;
-  String? _dateError;
-
   void _submit() {
     setState(() {
       _dateError = null;
@@ -98,7 +111,6 @@ class _DashboardPageState extends State<DashboardPage> {
       final value = double.tryParse(_valueController.text);
       final desc = _descController.text.trim();
       final date = _selectedDate!;
-      // Validação valor
       if (value == null || value <= 0) {
         setState(() {
           _dateError = 'Valor deve ser maior que zero';
@@ -111,7 +123,6 @@ class _DashboardPageState extends State<DashboardPage> {
         });
         return;
       }
-      // Validação descrição
       if (desc.isEmpty) {
         setState(() {
           _dateError = 'Descrição obrigatória';
@@ -130,7 +141,6 @@ class _DashboardPageState extends State<DashboardPage> {
         });
         return;
       }
-      // Duplicidade
       final isDuplicate = _transactions.any(
         (t) =>
             t.value == value &&
@@ -217,168 +227,17 @@ class _DashboardPageState extends State<DashboardPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          AppTextField(
-                            label: 'Valor',
-                            controller: _valueController,
-                            keyboardType: TextInputType.number,
-                            validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Informe o valor';
-                              }
-                              final val = double.tryParse(v);
-                              if (val == null || val <= 0) {
-                                return 'Valor deve ser maior que zero';
-                              }
-                              if (val > 1000000) {
-                                return 'Valor máximo permitido: 1.000.000';
-                              }
-                              return null;
-                            },
-                          ),
-                          AppTextField(
-                            label: 'Descrição',
-                            controller: _descController,
-                            validator: (v) {
-                              if (v == null || v.trim().isEmpty) {
-                                return 'Descrição obrigatória';
-                              }
-                              if (v.trim().length < 3) {
-                                return 'Descrição muito curta';
-                              }
-                              if (v.trim().length > 100) {
-                                return 'Descrição muito longa';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: AppTextField(
-                                  label: 'Data (dd/mm/aaaa)',
-                                  controller: _dateController,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    TextInputFormatter.withFunction((
-                                      oldValue,
-                                      newValue,
-                                    ) {
-                                      var text = newValue.text;
-                                      if (text.length > 2 && text[2] != '/') {
-                                        text =
-                                            '${text.substring(0, 2)}/${text.substring(2)}';
-                                      }
-                                      if (text.length > 5 && text[5] != '/') {
-                                        text =
-                                            '${text.substring(0, 5)}/${text.substring(5)}';
-                                      }
-                                      if (text.length > 10) {
-                                        text = text.substring(0, 10);
-                                      }
-                                      return TextEditingValue(
-                                        text: text,
-                                        selection: TextSelection.collapsed(
-                                          offset: text.length,
-                                        ),
-                                      );
-                                    }),
-                                  ],
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Informe a data';
-                                    }
-                                    final regex = RegExp(
-                                      r'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$',
-                                    );
-                                    if (!regex.hasMatch(value)) {
-                                      return 'Formato inválido (dd/mm/aaaa)';
-                                    }
-                                    // Atualiza _selectedDate se o valor for válido
-                                    final parts = value.split('/');
-                                    final day = int.tryParse(parts[0]);
-                                    final month = int.tryParse(parts[1]);
-                                    final year = int.tryParse(parts[2]);
-                                    if (day != null &&
-                                        month != null &&
-                                        year != null) {
-                                      final date = DateTime(year, month, day);
-                                      if (_selectedDate == null ||
-                                          _selectedDate!.day != day ||
-                                          _selectedDate!.month != month ||
-                                          _selectedDate!.year != year) {
-                                        setState(() {
-                                          _selectedDate = date;
-                                        });
-                                      }
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              TextButton.icon(
-                                onPressed: () {
-                                  _pickDate(context);
-                                  if (_selectedDate != null) {
-                                    _dateController.text = DateFormat(
-                                      'dd/MM/yyyy',
-                                    ).format(_selectedDate!);
-                                  }
-                                },
-                                icon: const Icon(Icons.calendar_today),
-                                label: const Text('Escolher'),
-                              ),
-                            ],
-                          ),
-                          if (_dateError != null)
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 8.0,
-                                top: 2.0,
-                              ),
-                              child: Text(
-                                _dateError!,
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: RadioListTile<bool>(
-                                  title: const Text('Entrada'),
-                                  value: true,
-                                  groupValue: _isIncome,
-                                  onChanged: (v) =>
-                                      setState(() => _isIncome = v!),
-                                ),
-                              ),
-                              Expanded(
-                                child: RadioListTile<bool>(
-                                  title: const Text('Saída'),
-                                  value: false,
-                                  groupValue: _isIncome,
-                                  onChanged: (v) =>
-                                      setState(() => _isIncome = v!),
-                                ),
-                              ),
-                            ],
-                          ),
-                          ElevatedButton(
-                            onPressed: _submit,
-                            child: Text(
-                              _editingIndex == null ? 'Adicionar' : 'Salvar',
-                            ),
-                          ),
-                        ],
-                      ),
+                    TransactionForm(
+                      formKey: _formKey,
+                      valueController: _valueController,
+                      descController: _descController,
+                      dateController: _dateController,
+                      selectedDate: _selectedDate,
+                      isIncome: _isIncome,
+                      dateError: _dateError,
+                      onPickDate: () => _pickDate(context),
+                      onSubmit: _submit,
+                      onIncomeChanged: (v) => setState(() => _isIncome = v),
                     ),
                   ],
                 ),
