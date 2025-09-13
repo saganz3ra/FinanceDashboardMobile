@@ -45,7 +45,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _phoneController = TextEditingController();
   DateTime? _birthDate;
 
-  // Validação de CPF simples (formato e dígitos)
   String? _validateCPF(String? value) {
     if (value == null || value.isEmpty) return 'CPF obrigatório';
     final cpf = value.replaceAll(RegExp(r'[^0-9]'), '');
@@ -75,7 +74,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  // Validação de email simples
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Email obrigatório';
     if (!value.contains('@') || !RegExp(r'^.+@.+\..+$').hasMatch(value)) {
@@ -84,7 +82,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  // Validação de senha forte
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'Senha obrigatória';
     if (value.length < 6) return 'Senha deve ter pelo menos 6 caracteres';
@@ -101,7 +98,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  // Validação de telefone com DDD (formato brasileiro)
   String? _validatePhone(String? value) {
     if (value == null || value.isEmpty) return 'Telefone obrigatório';
     final phone = value.replaceAll(RegExp(r'[^0-9]'), '');
