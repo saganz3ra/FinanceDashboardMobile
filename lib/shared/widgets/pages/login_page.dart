@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
-import '../shared/widgets/atoms/app_button.dart';
-import '../shared/widgets/atoms/app_text_field.dart';
-import '../shared/constants/colors.dart';
-import '../services/local_user_storage.dart';
+import '../atoms/app_button.dart';
+import '../atoms/app_text_field.dart';
+import '../../constants/colors.dart';
+import '../../../services/local_user_storage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../constants/sizes.dart';
 
 class FinanceInfoCard extends StatelessWidget {
   final IconData icon;
@@ -19,19 +18,12 @@ class FinanceInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      container: true,
-      label: semanticsLabel,
-      child: Card(
-        elevation: 2,
-        child: ListTile(
-          leading: Icon(icon, color: iconColor, size: AppSizes.iconSize),
-          title: Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(subtitle),
-        ),
+    return Card(
+      elevation: 2,
+      child: ListTile(
+        leading: Icon(icon, color: iconColor, semanticLabel: semanticsLabel),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle),
       ),
     );
   }

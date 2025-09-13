@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
-
 import 'package:http/http.dart' as http;
 
 class CurrencyService {
@@ -178,7 +177,7 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             if (_dollarValue != null)
               Text(
-                "1 USD = R\$ ${_dollarValue!.toStringAsFixed(2)}",
+                "1 USD = R\$ " + _dollarValue!.toStringAsFixed(2),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

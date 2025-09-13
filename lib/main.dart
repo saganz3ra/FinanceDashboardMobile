@@ -17,9 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Colors.blue[900],
         scaffoldBackgroundColor: Colors.white,
-        textTheme: GoogleFonts.figtreeTextTheme(
-          Theme.of(context).textTheme,
-        ),
+        textTheme: GoogleFonts.figtreeTextTheme(Theme.of(context).textTheme),
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.blue[900],
           foregroundColor: Colors.white,
@@ -38,6 +36,22 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: AppRoutes.home,
       routes: AppRoutes.routes,
+      onGenerateRoute: (settings) {
+        final builder = AppRoutes.routes[settings.name];
+        if (builder != null) {
+          return PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                builder(context),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+            transitionDuration: const Duration(milliseconds: 400),
+            settings: settings,
+          );
+        }
+        return null;
+      },
     );
   }
 }
