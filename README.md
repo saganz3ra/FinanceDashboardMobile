@@ -22,6 +22,16 @@ Este projeto é uma adaptação do sistema em Laravel para mobile, utilizando Fl
 
 ## 🆕 Funcionalidades recentes
 
+- Estrutura completa baseada no Atomic Design:
+  - Componentes organizados em `lib/shared/widgets/atoms`, `molecules`, `organisms`.
+  - Telas principais refatoradas para usar atomic design, facilitando manutenção e reutilização.
+- Extração e reutilização de componentes: campos, botões, listas e títulos agora são widgets reutilizáveis.
+- Validações robustas nos formulários (Dashboard e Register): valor, descrição, data (com máscara e seleção), e duplicidade de transações.
+- Integração com API de cotação do dólar:
+
+  - O Dashboard exibe a cotação atual do dólar em tempo real, consumindo a API pública https://economia.awesomeapi.com.br/json/last/USD-BRL.
+  - Conversão automática dos valores das transações para dólar.
+
 - Registro de usuário com validação de todos os campos (incluindo máscara de data e confirmação de senha)
 - Salvamento dos dados do registro localmente usando o pacote [`shared_preferences`](https://pub.dev/packages/shared_preferences), simulando um backend
 - Login validando email e senha com os dados salvos localmente
@@ -31,7 +41,12 @@ Este projeto é uma adaptação do sistema em Laravel para mobile, utilizando Fl
 
 ## 🚀 Estrutura
 
-- Estrutura inspirada no Atomic Design (pasta `atoms` já implementada; demais níveis podem ser expandidos)
+- Estrutura baseada no Atomic Design:
+  - `lib/shared/widgets/atoms`: componentes básicos (inputs, botões)
+  - `lib/shared/widgets/molecules`: combinações simples (cards, grupos de botões, campos agrupados)
+  - `lib/shared/widgets/organisms`: blocos funcionais maiores (listas, formulários)
+  - `lib/shared/widgets/templates`: reservado para templates de tela (ainda não utilizado)
+  - Telas usam e compõem esses componentes para máxima reutilização e clareza.
 - Navegação entre telas usando rotas nomeadas e transições animadas
 - Layout moderno com `Scaffold`, `AppBar`, componentes customizados e responsivos
 
@@ -42,6 +57,16 @@ Este projeto é uma adaptação do sistema em Laravel para mobile, utilizando Fl
 3. Execute `flutter run`
 
 ## 📦 Dependências externas
+
+### API de Cotação do Dólar
+
+O app consome a API pública [`AwesomeAPI`](https://docs.awesomeapi.com.br/api-de-moedas) para exibir a cotação do dólar em tempo real no Dashboard:
+
+```
+https://economia.awesomeapi.com.br/json/last/USD-BRL
+```
+
+Essa integração permite converter valores das transações para dólar automaticamente.
 
 ### Destaque: [`shared_preferences`](https://pub.dev/packages/shared_preferences)
 
