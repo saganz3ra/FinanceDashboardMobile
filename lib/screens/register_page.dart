@@ -1,7 +1,10 @@
+import '../shared/widgets/organisms/register_form.dart';
+// import '../shared/widgets/molecules/register_fields.dart';
+// import '../shared/widgets/molecules/register_title.dart';
 import 'package:flutter/material.dart';
 
-import '../shared/widgets/atoms/app_button.dart';
-import '../shared/widgets/atoms/app_text_field.dart';
+// import '../shared/widgets/atoms/app_button.dart';
+// import '../shared/widgets/atoms/app_text_field.dart';
 import 'package:flutter/services.dart';
 import '../shared/constants/colors.dart';
 import '../services/local_user_storage.dart';
@@ -138,167 +141,102 @@ class _RegisterPageState extends State<RegisterPage> {
             padding: const EdgeInsets.all(16.0),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Crie sua conta',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
+              child: RegisterForm(
+                formKey: _formKey,
+                nameController: _nameController,
+                cpfController: _cpfController,
+                emailController: _emailController,
+                passwordController: _passwordController,
+                confirmPasswordController: _confirmPasswordController,
+                phoneController: _phoneController,
+                birthDateController: _birthDateController,
+                nameValidator: (value) =>
+                    value == null || value.isEmpty ? 'Nome obrigatório' : null,
+                cpfValidator: _validateCPF,
+                emailValidator: _validateEmail,
+                passwordValidator: _validatePassword,
+                confirmPasswordValidator: _validateConfirmPassword,
+                phoneValidator: _validatePhone,
+                birthDateValidator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Data de nascimento obrigatória';
+                  }
+                  final regex = RegExp(
+                    r'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$',
+                  );
+                  if (!regex.hasMatch(value)) {
+                    return 'Formato inválido (dd/mm/aaaa)';
+                  }
+                  // Atualiza _birthDate se o valor for válido
+                  final parts = value.split('/');
+                  final day = int.tryParse(parts[0]);
+                  final month = int.tryParse(parts[1]);
+                  final year = int.tryParse(parts[2]);
+                  if (day != null && month != null && year != null) {
+                    final date = DateTime(year, month, day);
+                    if (_birthDate == null ||
+                        _birthDate!.day != day ||
+                        _birthDate!.month != month ||
+                        _birthDate!.year != year) {
+                      setState(() {
+                        _birthDate = date;
+                      });
+                    }
+                  }
+                  return null;
+                },
+                birthDateInputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  TextInputFormatter.withFunction((oldValue, newValue) {
+                    var text = newValue.text;
+                    if (text.length > 2 && text[2] != '/') {
+                      text = '${text.substring(0, 2)}/${text.substring(2)}';
+                    }
+                    if (text.length > 5 && text[5] != '/') {
+                      text = '${text.substring(0, 5)}/${text.substring(5)}';
+                    }
+                    if (text.length > 10) {
+                      text = text.substring(0, 10);
+                    }
+                    return TextEditingValue(
+                      text: text,
+                      selection: TextSelection.collapsed(offset: text.length),
+                    );
+                  }),
+                ],
+                onSelectBirthDate: () async {
+                  await _selectBirthDate(context);
+                  if (_birthDate != null) {
+                    _birthDateController.text =
+                        '${_birthDate!.day.toString().padLeft(2, '0')}/${_birthDate!.month.toString().padLeft(2, '0')}/${_birthDate!.year}';
+                  }
+                },
+                onRegister: () async {
+                  if (_formKey.currentState!.validate() && _birthDate != null) {
+                    await LocalUserStorage.saveUser({
+                      'name': _nameController.text,
+                      'cpf': _cpfController.text,
+                      'email': _emailController.text,
+                      'password': _passwordController.text,
+                      'phone': _phoneController.text,
+                      'birthDate': _birthDateController.text,
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Registro realizado com sucesso!'),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    AppTextField(
-                      controller: _nameController,
-                      label: 'Nome',
-                      semanticsLabel: 'Campo de nome',
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Nome obrigatório'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      controller: _cpfController,
-                      label: 'CPF',
-                      semanticsLabel: 'Campo de CPF',
-                      keyboardType: TextInputType.number,
-                      validator: _validateCPF,
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      controller: _emailController,
-                      label: 'Email',
-                      semanticsLabel: 'Campo de email',
-                      keyboardType: TextInputType.emailAddress,
-                      validator: _validateEmail,
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      controller: _passwordController,
-                      label: 'Senha',
-                      obscureText: true,
-                      semanticsLabel: 'Campo de senha',
-                      validator: _validatePassword,
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      controller: _confirmPasswordController,
-                      label: 'Confirmar Senha',
-                      obscureText: true,
-                      semanticsLabel: 'Campo de confirmação de senha',
-                      validator: _validateConfirmPassword,
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      controller: _phoneController,
-                      label: 'Telefone',
-                      semanticsLabel: 'Campo de telefone',
-                      keyboardType: TextInputType.phone,
-                      validator: _validatePhone,
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      controller: _birthDateController,
-                      label: 'Data de Nascimento (dd/mm/aaaa)',
-                      keyboardType: TextInputType.datetime,
-                      semanticsLabel: 'Campo de data de nascimento',
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        TextInputFormatter.withFunction((oldValue, newValue) {
-                          var text = newValue.text;
-                          if (text.length > 2 && text[2] != '/') {
-                            text =
-                                '${text.substring(0, 2)}/${text.substring(2)}';
-                          }
-                          if (text.length > 5 && text[5] != '/') {
-                            text =
-                                '${text.substring(0, 5)}/${text.substring(5)}';
-                          }
-                          if (text.length > 10) {
-                            text = text.substring(0, 10);
-                          }
-                          return TextEditingValue(
-                            text: text,
-                            selection: TextSelection.collapsed(
-                              offset: text.length,
-                            ),
-                          );
-                        }),
-                      ],
-                      validator: (value) {
-                        if ((value == null || value.isEmpty) &&
-                            _birthDate == null) {
-                          return 'Data de nascimento obrigatória';
-                        }
-                        // Aceita formato dd/mm/aaaa
-                        if (value != null && value.isNotEmpty) {
-                          final regex = RegExp(
-                            r'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$',
-                          );
-                          if (!regex.hasMatch(value)) {
-                            return 'Formato inválido (dd/mm/aaaa)';
-                          }
-                        }
-                        return null;
-                      },
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () async {
-                          await _selectBirthDate(context);
-                          if (_birthDate != null) {
-                            _birthDateController.text =
-                                '${_birthDate!.day.toString().padLeft(2, '0')}/${_birthDate!.month.toString().padLeft(2, '0')}/${_birthDate!.year}';
-                          }
-                        },
-                        child: const Text('Selecionar no calendário'),
+                    );
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      Navigator.of(context).pushReplacementNamed('/login');
+                    });
+                  } else if (_birthDate == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Selecione a data de nascimento.'),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    AppButton(
-                      label: 'Registrar',
-                      icon: Icons.app_registration,
-                      color: AppColors.primary,
-                      semanticsLabel: 'Botão para registrar',
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate() &&
-                            _birthDate != null) {
-                          // Salva os dados localmente
-                          await LocalUserStorage.saveUser({
-                            'name': _nameController.text,
-                            'cpf': _cpfController.text,
-                            'email': _emailController.text,
-                            'password': _passwordController.text,
-                            'phone': _phoneController.text,
-                            'birthDate': _birthDateController.text,
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Registro realizado com sucesso!'),
-                            ),
-                          );
-                          Future.delayed(const Duration(milliseconds: 500), () {
-                            Navigator.of(
-                              context,
-                            ).pushReplacementNamed('/login');
-                          });
-                        } else if (_birthDate == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Selecione a data de nascimento.'),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),
+                    );
+                  }
+                },
               ),
             ),
           ),

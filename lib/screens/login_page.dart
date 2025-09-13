@@ -1,7 +1,5 @@
+import '../shared/widgets/organisms/login_form.dart';
 import 'package:flutter/material.dart';
-
-import '../shared/widgets/atoms/app_button.dart';
-import '../shared/widgets/atoms/app_text_field.dart';
 import '../shared/constants/colors.dart';
 import '../services/local_user_storage.dart';
 
@@ -61,69 +59,30 @@ class _LoginPageState extends State<LoginPage> {
             padding: const EdgeInsets.all(16.0),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Semantics(
-                      header: true,
-                      label: 'Faça seu login',
-                      child: Text(
-                        "Faça seu login",
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    AppTextField(
-                      controller: _emailController,
-                      label: "Email",
-                      semanticsLabel: 'Campo de email',
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty)
-                          return 'Email obrigatório';
-                        if (!value.contains('@') ||
-                            !RegExp(r'^.+@.+\..+$').hasMatch(value))
-                          return 'Email inválido';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      controller: _passwordController,
-                      label: "Senha",
-                      obscureText: true,
-                      semanticsLabel: 'Campo de senha',
-                      validator: (value) {
-                        if (value == null || value.isEmpty)
-                          return 'Senha obrigatória';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    AppButton(
-                      label: "Entrar",
-                      icon: Icons.login,
-                      color: AppColors.primary,
-                      semanticsLabel: 'Botão para entrar',
-                      onPressed: _login,
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed('/register');
-                      },
-                      child: const Text('Não tem conta? Cadastre-se'),
-                    ),
-                  ],
-                ),
+              child: LoginForm(
+                formKey: _formKey,
+                emailController: _emailController,
+                passwordController: _passwordController,
+                emailValidator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Email obrigatório';
+                  }
+                  if (!value.contains('@') ||
+                      !RegExp(r'^.+@.+\..+').hasMatch(value)) {
+                    return 'Email inválido';
+                  }
+                  return null;
+                },
+                passwordValidator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Senha obrigatória';
+                  }
+                  return null;
+                },
+                onLogin: _login,
+                onRegister: () {
+                  Navigator.of(context).pushNamed('/register');
+                },
               ),
             ),
           ),

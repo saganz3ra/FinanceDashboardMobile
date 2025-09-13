@@ -1,9 +1,10 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
-
 import 'package:http/http.dart' as http;
+import '../shared/widgets/atoms/app_text_field.dart';
+import '../shared/widgets/molecules/transaction_list_item.dart';
 
 class CurrencyService {
   static Future<double> getDollarValue() async {
@@ -11,7 +12,6 @@ class CurrencyService {
       "https://economia.awesomeapi.com.br/json/last/USD-BRL",
     );
     final response = await http.get(url);
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final value = double.parse(data["USDBRL"]["bid"]);
@@ -43,6 +43,35 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  Future<void> _pickDate(BuildContext context) async {
+    final now = DateTime.now();
+    final initialDate = _selectedDate ?? now;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+        _dateController.text = DateFormat('dd/MM/yyyy').format(picked);
+      });
+    }
+  }
+
+  void _edit(int index) {
+    final t = _transactions[index];
+    setState(() {
+      _editingIndex = index;
+      _valueController.text = t.value.toString();
+      _descController.text = t.description;
+      _selectedDate = t.date;
+      _dateController.text = DateFormat('dd/MM/yyyy').format(t.date);
+      _isIncome = t.isIncome;
+    });
+  }
+
   final List<Transaction> _transactions = [];
   final _formKey = GlobalKey<FormState>();
   final _valueController = TextEditingController();
@@ -55,45 +84,6 @@ class _DashboardPageState extends State<DashboardPage> {
   double? _dollarValue;
   String? _dateError;
 
-  @override
-  void dispose() {
-    _valueController.dispose();
-    _descController.dispose();
-    _dateController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  Future<void> _loadDollarValue() async {
-    try {
-      final value = await CurrencyService.getDollarValue();
-      setState(() {
-        _dollarValue = value;
-      });
-    } catch (e) {
-      debugPrint("Erro ao buscar dólar: $e");
-    }
-  }
-
-  void _pickDate(BuildContext context) async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? now,
-      firstDate: DateTime(now.year - 5),
-      lastDate: DateTime(now.year + 5),
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
   void _submit() {
     setState(() {
       _dateError = null;
@@ -105,17 +95,55 @@ class _DashboardPageState extends State<DashboardPage> {
         });
         return;
       }
-      final now = DateTime.now();
-      if (_isIncome &&
-          _selectedDate!.isAfter(DateTime(now.year, now.month, now.day))) {
+      final value = double.tryParse(_valueController.text);
+      final desc = _descController.text.trim();
+      final date = _selectedDate!;
+      // Validação valor
+      if (value == null || value <= 0) {
         setState(() {
-          _dateError = 'Entradas não podem ter data futura';
+          _dateError = 'Valor deve ser maior que zero';
         });
         return;
       }
-      final value = double.parse(_valueController.text);
-      final desc = _descController.text;
-      final date = _selectedDate!;
+      if (value > 1000000) {
+        setState(() {
+          _dateError = 'Valor máximo permitido: 1.000.000';
+        });
+        return;
+      }
+      // Validação descrição
+      if (desc.isEmpty) {
+        setState(() {
+          _dateError = 'Descrição obrigatória';
+        });
+        return;
+      }
+      if (desc.length < 3) {
+        setState(() {
+          _dateError = 'Descrição muito curta';
+        });
+        return;
+      }
+      if (desc.length > 100) {
+        setState(() {
+          _dateError = 'Descrição muito longa';
+        });
+        return;
+      }
+      // Duplicidade
+      final isDuplicate = _transactions.any(
+        (t) =>
+            t.value == value &&
+            t.description.trim() == desc &&
+            t.date == date &&
+            t.isIncome == _isIncome,
+      );
+      if (_editingIndex == null && isDuplicate) {
+        setState(() {
+          _dateError = 'Transação idêntica já cadastrada';
+        });
+        return;
+      }
       if (_editingIndex == null) {
         _transactions.add(
           Transaction(
@@ -142,17 +170,6 @@ class _DashboardPageState extends State<DashboardPage> {
         _dateError = null;
       });
     }
-  }
-
-  void _edit(int index) {
-    final t = _transactions[index];
-    setState(() {
-      _editingIndex = index;
-      _valueController.text = t.value.toString();
-      _descController.text = t.description;
-      _selectedDate = t.date;
-      _isIncome = t.isIncome;
-    });
   }
 
   void _delete(int index) {
@@ -204,31 +221,36 @@ class _DashboardPageState extends State<DashboardPage> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          TextFormField(
+                          AppTextField(
+                            label: 'Valor',
                             controller: _valueController,
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Valor',
-                            ),
                             validator: (v) {
                               if (v == null || v.isEmpty) {
                                 return 'Informe o valor';
                               }
                               final val = double.tryParse(v);
                               if (val == null || val <= 0) {
-                                return 'Valor inválido';
+                                return 'Valor deve ser maior que zero';
+                              }
+                              if (val > 1000000) {
+                                return 'Valor máximo permitido: 1.000.000';
                               }
                               return null;
                             },
                           ),
-                          TextFormField(
+                          AppTextField(
+                            label: 'Descrição',
                             controller: _descController,
-                            decoration: const InputDecoration(
-                              labelText: 'Descrição',
-                            ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Informe a descrição';
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Descrição obrigatória';
+                              }
+                              if (v.trim().length < 3) {
+                                return 'Descrição muito curta';
+                              }
+                              if (v.trim().length > 100) {
+                                return 'Descrição muito longa';
                               }
                               return null;
                             },
@@ -237,7 +259,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           Row(
                             children: [
                               Expanded(
-                                child: TextFormField(
+                                child: AppTextField(
+                                  label: 'Data (dd/mm/aaaa)',
                                   controller: _dateController,
                                   keyboardType: TextInputType.number,
                                   inputFormatters: [
@@ -266,20 +289,32 @@ class _DashboardPageState extends State<DashboardPage> {
                                       );
                                     }),
                                   ],
-                                  decoration: const InputDecoration(
-                                    labelText: 'Data (dd/mm/aaaa)',
-                                  ),
                                   validator: (value) {
-                                    if ((value == null || value.isEmpty) &&
-                                        _selectedDate == null) {
+                                    if (value == null || value.isEmpty) {
                                       return 'Informe a data';
                                     }
-                                    if (value != null && value.isNotEmpty) {
-                                      final regex = RegExp(
-                                        r'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$',
-                                      );
-                                      if (!regex.hasMatch(value)) {
-                                        return 'Formato inválido (dd/mm/aaaa)';
+                                    final regex = RegExp(
+                                      r'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$',
+                                    );
+                                    if (!regex.hasMatch(value)) {
+                                      return 'Formato inválido (dd/mm/aaaa)';
+                                    }
+                                    // Atualiza _selectedDate se o valor for válido
+                                    final parts = value.split('/');
+                                    final day = int.tryParse(parts[0]);
+                                    final month = int.tryParse(parts[1]);
+                                    final year = int.tryParse(parts[2]);
+                                    if (day != null &&
+                                        month != null &&
+                                        year != null) {
+                                      final date = DateTime(year, month, day);
+                                      if (_selectedDate == null ||
+                                          _selectedDate!.day != day ||
+                                          _selectedDate!.month != month ||
+                                          _selectedDate!.year != year) {
+                                        setState(() {
+                                          _selectedDate = date;
+                                        });
                                       }
                                     }
                                     return null;
@@ -364,37 +399,18 @@ class _DashboardPageState extends State<DashboardPage> {
                         final valueInDollar = (_dollarValue != null)
                             ? (t.value / _dollarValue!)
                             : null;
-                        return Card(
-                          child: ListTile(
-                            leading: Icon(
-                              t.isIncome
-                                  ? Icons.arrow_upward
-                                  : Icons.arrow_downward,
-                              color: t.isIncome ? Colors.green : Colors.red,
-                            ),
-                            title: Text(
+                        return TransactionListItem(
+                          icon: t.isIncome
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
+                          iconColor: t.isIncome ? Colors.green : Colors.red,
+                          title:
                               '${t.isIncome ? 'Entrada' : 'Saída'}: R\$ ${t.value.toStringAsFixed(2)}',
-                            ),
-                            subtitle: Text(
-                              '${t.description}\n'
-                              '${DateFormat('dd/MM/yyyy').format(t.date)}'
-                              '${valueInDollar != null ? '\n≈ US\$ ${valueInDollar.toStringAsFixed(2)}' : ''}',
-                            ),
-                            isThreeLine: true,
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () => _edit(i),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () => _delete(i),
-                                ),
-                              ],
-                            ),
-                          ),
+                          subtitle:
+                              '${t.description}\n${DateFormat('dd/MM/yyyy').format(t.date)}${valueInDollar != null ? '\n≈ US\$ ${valueInDollar.toStringAsFixed(2)}' : ''}',
+                          isThreeLine: true,
+                          onEdit: () => _edit(i),
+                          onDelete: () => _delete(i),
                         );
                       },
                     ),
