@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "766125777599",
+    "project_id": "financedashboardmobile",
+    "storage_bucket": "financedashboardmobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:766125777599:android:a3f2a83379bae737a01c0a",
+        "android_client_info": {
+          "package_name": "android.permission.INTERNET"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQmDz3UzkH9SJjQacqcXdttpSaXL_L5qE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:766125777599:android:d720e9b2190b1272a01c0a",
+        "android_client_info": {
+          "package_name": "com.example.financedashboard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQmDz3UzkH9SJjQacqcXdttpSaXL_L5qE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -19,3 +19,13 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+
+Plugins {
+id("com.google.gms.google-services")
+}
+
+Dependencies {
+
+implementation(platform("com.google.firebase:fire
+base-bom:34.3.0"))
+}
