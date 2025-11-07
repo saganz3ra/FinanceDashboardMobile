@@ -28,7 +28,7 @@ class _AppButtonState extends State<AppButton> {
   @override
   Widget build(BuildContext context) {
     final buttonColor = widget.color ?? AppColors.primary;
-    final hoverColor = buttonColor.withOpacity(0.85);
+    final hoverColor = buttonColor.withValues(alpha: 0.85);
     return Semantics(
       button: true,
       label: widget.semanticsLabel ?? widget.label,
@@ -38,7 +38,7 @@ class _AppButtonState extends State<AppButton> {
         child: InkWell(
           onTap: widget.onPressed,
           borderRadius: BorderRadius.circular(AppSizes.borderRadius),
-          splashColor: buttonColor.withOpacity(0.2),
+          splashColor: buttonColor.withValues(alpha: 0.2),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             decoration: BoxDecoration(
@@ -47,7 +47,7 @@ class _AppButtonState extends State<AppButton> {
               boxShadow: _hovering
                   ? [
                       BoxShadow(
-                        color: buttonColor.withOpacity(0.25),
+                        color: buttonColor.withValues(alpha: 0.25),
                         blurRadius: 8,
                         offset: Offset(0, 2),
                       ),

@@ -1,13 +1,7 @@
 import '../shared/widgets/organisms/register_form.dart';
-// import '../shared/widgets/molecules/register_fields.dart';
-// import '../shared/widgets/molecules/register_title.dart';
 import 'package:flutter/material.dart';
-
-// import '../shared/widgets/atoms/app_button.dart';
-// import '../shared/widgets/atoms/app_text_field.dart';
 import 'package:flutter/services.dart';
 import '../shared/constants/colors.dart';
-import '../services/local_user_storage.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -209,22 +203,17 @@ class _RegisterPageState extends State<RegisterPage> {
                 },
                 onRegister: () async {
                   if (_formKey.currentState!.validate() && _birthDate != null) {
-                    await LocalUserStorage.saveUser({
-                      'name': _nameController.text,
-                      'cpf': _cpfController.text,
-                      'email': _emailController.text,
-                      'password': _passwordController.text,
-                      'phone': _phoneController.text,
-                      'birthDate': _birthDateController.text,
-                    });
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Registro realizado com sucesso!'),
+                        content: Text(
+                          'Registro realizado com sucesso! (Bypass temporário)',
+                        ),
                       ),
                     );
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    });
+                    // Aguarda um pequeno delay e garante que o widget ainda esteja montado
+                    await Future.delayed(const Duration(milliseconds: 500));
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushReplacementNamed('/login');
                   } else if (_birthDate == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(

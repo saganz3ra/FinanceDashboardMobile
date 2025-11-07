@@ -5,26 +5,41 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:financedashboard/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('App deve iniciar e mostrar a tela inicial', (
+    WidgetTester tester,
+  ) async {
+    // Preparação: Constrói nossa aplicação
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verificação: Deve encontrar o título da tela inicial
+    expect(
+      find.text('Home'),
+      findsOneWidget,
+      reason: 'O título "Home" deve estar visível na AppBar',
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Verificação: Deve encontrar o texto de boas-vindas
+    expect(
+      find.text('Bem-vindo ao Finance Dashboard!'),
+      findsOneWidget,
+      reason: 'O texto de boas-vindas deve estar visível',
+    );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verificação: Deve encontrar os botões de navegação
+    expect(
+      find.text('Ir para Login'),
+      findsOneWidget,
+      reason: 'O botão de login deve estar visível',
+    );
+    expect(
+      find.text('Ir para Dashboard'),
+      findsOneWidget,
+      reason: 'O botão do dashboard deve estar visível',
+    );
   });
 }

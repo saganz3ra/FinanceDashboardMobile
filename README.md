@@ -1,91 +1,164 @@
-# FinanceDashboardMobile
+# FinanceDashboardMobile (Flutter)
 
-Este projeto é uma adaptação do sistema em Laravel para mobile, utilizando Flutter.
+App mobile de controle financeiro pessoal, escrito em Flutter, com arquitetura limpa (Domain/Data/Presentation), estado global com Provider/ChangeNotifier e DI com GetIt. Integra Firebase Core e prepara Firestore; autenticação está temporariamente em bypass para facilitar o desenvolvimento.
 
-## 📱 Telas implementadas
+• Flutter: 3.35.x • Dart: 3.9.x
 
-- **HomePage**: Tela inicial com botões de navegação.
-- **LoginPage**: Tela de login com autenticação local simulada.
-- **RegisterPage**: Tela de registro com validação completa (nome, CPF, email, senha forte, confirmação de senha, telefone, data de nascimento com máscara e seleção por calendário).
-- **DashboardPage**: Tela de controle financeiro do usuário, com CRUD completo de transações e campo de data com máscara.
+## ✨ Principais funcionalidades
 
-## 🧾 Funcionalidades do Dashboard
+- Dashboard com CRUD de transações (entrada/saída) e validações de valor, descrição e data
+- Conversão opcional para USD usando a API pública da AwesomeAPI (cotação do dólar)
+- Formulários de Login e Registro com validações (nome, CPF, email, senha forte, telefone e data de nascimento)
+- Componentização seguindo Atomic Design (atoms/molecules/organisms)
+- Transições animadas e UI responsiva/semântica
 
-- Adicionar, editar e excluir transações financeiras (entradas e saídas)
-- Formulário centralizado e responsivo, estilo Google Forms
-- Validação dos campos: valor, descrição e data
-- Restrições de data:
-  - Entradas não podem ser cadastradas com data futura
-  - Saídas podem ser programadas para datas futuras
-- Visualização de lista de transações, com ícones e informações detalhadas
-- Botões reestilizados para maior contraste e melhor visualização
+## 🧩 Arquitetura e camadas
 
-## 🆕 Funcionalidades recentes
+O projeto segue um desenho em camadas, favorecendo testabilidade e manutenção:
 
-- Estrutura completa baseada no Atomic Design:
-  - Componentes organizados em `lib/shared/widgets/atoms`, `molecules`, `organisms`.
-  - Telas principais refatoradas para usar atomic design, facilitando manutenção e reutilização.
-- Extração e reutilização de componentes: campos, botões, listas e títulos agora são widgets reutilizáveis.
-- Validações robustas nos formulários (Dashboard e Register): valor, descrição, data (com máscara e seleção), e duplicidade de transações.
-- Integração com API de cotação do dólar:
+- domain/
+  - entities/ (modelos de negócio puros)
+  - repositories/ (abstrações)
+  - usecases/ (regras de aplicação, ex.: `GetTransactions`, `GetDollarValue`)
+- data/
+  - models/ (DTOs e conversões)
+  - datasources/ (remote/local: HTTP/AwesomeAPI, SharedPreferences, Firestore preparado)
+  - repositories/ (implementações de `domain/repositories`)
+- presentation/
+  - controllers/ (ChangeNotifiers como `DashboardController` e `AuthController`)
+- screens/ (telas: Home, Login, Register, Dashboard)
+- shared/widgets (atoms, molecules, organisms)
+- routes/ (mapeamento de rotas nomeadas)
+- di/ (registro de dependências com GetIt)
 
-  - O Dashboard exibe a cotação atual do dólar em tempo real, consumindo a API pública https://economia.awesomeapi.com.br/json/last/USD-BRL.
-  - Conversão automática dos valores das transações para dólar.
+Estado global: Provider/ChangeNotifier
 
-- Registro de usuário com validação de todos os campos (incluindo máscara de data e confirmação de senha)
-- Salvamento dos dados do registro localmente usando o pacote [`shared_preferences`](https://pub.dev/packages/shared_preferences), simulando um backend
-- Login validando email e senha com os dados salvos localmente
-- Dashboard com campo de data que aceita digitação e formata automaticamente com '/'
-- Transições suaves entre telas
-- Todos os controladores de formulário são corretamente descartados (dispose)
+DI: GetIt (ver `lib/di/injection_container.dart`)
 
-## 🚀 Estrutura
+## 📂 Estrutura de pastas (resumo)
 
-- Estrutura baseada no Atomic Design:
-  - `lib/shared/widgets/atoms`: componentes básicos (inputs, botões)
-  - `lib/shared/widgets/molecules`: combinações simples (cards, grupos de botões, campos agrupados)
-  - `lib/shared/widgets/organisms`: blocos funcionais maiores (listas, formulários)
-  - `lib/shared/widgets/templates`: reservado para templates de tela (ainda não utilizado)
-  - Telas usam e compõem esses componentes para máxima reutilização e clareza.
-- Navegação entre telas usando rotas nomeadas e transições animadas
-- Layout moderno com `Scaffold`, `AppBar`, componentes customizados e responsivos
+```
+lib/
+  core/
+  data/
+    datasources/
+    models/
+    repositories/
+  domain/
+    entities/
+    repositories/
+    usecases/
+  di/
+  presentation/
+    controllers/
+  routes/
+  screens/
+  shared/
+    constants/
+    theme/
+    widgets/
+      atoms/
+      molecules/
+      organisms/
+  widgets/
+```
 
-## 🔗 Como rodar
+## 🔧 Pré‑requisitos
 
-1. Clone o repositório
-2. Rode `flutter pub get`
-3. Execute `flutter run`
+- Flutter SDK instalado (canal stable)
+- Android Studio/Xcode configurados (para builds nativos) ou Chrome (para Web)
+- Firebase já inicializado via `firebase_options.dart` (o projeto inclui os arquivos de plataforma)
 
-## 📦 Dependências externas
+## 🚀 Como executar
 
-### API de Cotação do Dólar
+No terminal, dentro da pasta do projeto:
 
-O app consome a API pública [`AwesomeAPI`](https://docs.awesomeapi.com.br/api-de-moedas) para exibir a cotação do dólar em tempo real no Dashboard:
+```powershell
+# Instale dependências
+flutter pub get
+
+# Execute no dispositivo/simulador conectado
+flutter run
+
+# (Opcional) Rode para Web
+flutter run -d chrome
+```
+
+Rotas principais:
+
+- `/` → Home
+- `/login` → Login
+- `/register` → Registro
+- `/dashboard` → Dashboard
+
+## 🧪 Testes
+
+O projeto possui testes unitários (models, controllers, repositórios) e de widget.
+
+```powershell
+flutter test
+```
+
+Pastas relevantes:
+
+- `test/unit/models`
+- `test/unit/controllers`
+- `test/unit/repositories`
+- `test/widget`
+
+## 🌐 Integrações externas
+
+### Cotação do dólar (AwesomeAPI)
+
+Usamos a rota pública para obter a cotação do USD em BRL e exibir no Dashboard, além de calcular equivalentes:
 
 ```
 https://economia.awesomeapi.com.br/json/last/USD-BRL
 ```
 
-Essa integração permite converter valores das transações para dólar automaticamente.
+Implementação: `data/datasources/remote/currency_remote_data_source.dart` → `data/repositories/currency_repository_impl.dart` → `domain/usecases/get_dollar_value.dart`.
 
-### Destaque: [`shared_preferences`](https://pub.dev/packages/shared_preferences)
+### Firebase
 
-Utilizado para salvar e recuperar os dados do usuário localmente, simulando autenticação e persistência sem backend.
+- `firebase_core` inicializado em `main.dart`
+- Firestore disponível e data source registrado (ver `TransactionFirestoreDataSource`), porém o repositório de transações padrão atualmente usa armazenamento local para facilitar o desenvolvimento.
+- Autenticação está em bypass temporário (ver `presentation/controllers/auth_controller.dart`).
 
-Para instalar:
+Para reativar a autenticação real (Firebase Auth):
 
-```bash
-flutter pub add shared_preferences
+1) Reintroduza os imports e registros de Auth no `lib/di/injection_container.dart` (datasource, repositório e usecases de signIn/signUp/signOut)
+2) Atualize `AuthController` para chamar os usecases reais
+3) Ajuste `LoginPage`/`RegisterPage` para usar o `AuthController` (Provider)
+
+## 🧱 Decisões de engenharia
+
+- Provider/ChangeNotifier para simplicidade e boa integração com Flutter
+- GetIt para DI explícita e testável
+- Clean Architecture para separar responsabilidade e permitir mocks em testes
+- Widgets com semântica e acessibilidade (ex.: `Semantics` em botões)
+
+## 🧹 Lint, qualidade e formatação
+
+- Regras no `analysis_options.yaml`
+- Análise estática:
+
+```powershell
+flutter analyze
 ```
 
-### Outras dependências
+- Formatação:
 
-- [`intl`](https://pub.dev/packages/intl): manipulação e formatação de datas
-- [`google_fonts`](https://pub.dev/packages/google_fonts): fontes customizadas
-- [`cupertino_icons`](https://pub.dev/packages/cupertino_icons): ícones iOS
-
-Caso utilize outros pacotes, instale-os usando:
-
-```bash
-flutter pub add <nome_do_pacote>
+```powershell
+dart format .
 ```
+
+## 🐞 Solução de problemas
+
+- Erro ao inicializar Firebase: confira `firebase_options.dart` e os arquivos nativos (Google Services / plist)
+- Problemas de rota: verifique `lib/routes/app_routes.dart`
+- Sem internet: a cotação do dólar não será atualizada; transações locais continuam funcionando
+
+## 📜 Licença
+
+Este repositório é apenas para fins educacionais/demonstração. Defina sua licença conforme necessário.
+

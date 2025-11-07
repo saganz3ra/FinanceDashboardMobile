@@ -1,7 +1,6 @@
 import '../shared/widgets/organisms/login_form.dart';
 import 'package:flutter/material.dart';
 import '../shared/constants/colors.dart';
-import '../services/local_user_storage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,27 +22,17 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
+    // Bypass temporário da autenticação
     if (!_formKey.currentState!.validate()) return;
-    final user = await LocalUserStorage.getUser();
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nenhum usuário registrado.')),
-      );
-      return;
-    }
-    if (_emailController.text == user['email'] &&
-        _passwordController.text == user['password']) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Login realizado!')));
-      Future.delayed(const Duration(milliseconds: 500), () {
-        Navigator.of(context).pushReplacementNamed('/dashboard');
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email ou senha incorretos.')),
-      );
-    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Login realizado! (Bypass temporário)')),
+    );
+
+    // Aguarda um pequeno delay e garante que o widget ainda esteja montado
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed('/dashboard');
   }
 
   @override

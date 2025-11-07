@@ -1,38 +1,12 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../presentation/controllers/dashboard_controller.dart';
 import '../shared/widgets/organisms/transaction_form.dart';
 import '../shared/widgets/molecules/transaction_list_item.dart';
+import 'package:financedashboard/domain/entities/transaction.dart';
 
-class CurrencyService {
-  static Future<double> getDollarValue() async {
-    final url = Uri.parse(
-      "https://economia.awesomeapi.com.br/json/last/USD-BRL",
-    );
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final value = double.parse(data["USDBRL"]["bid"]);
-      return value;
-    } else {
-      throw Exception("Erro ao buscar valor do dólar");
-    }
-  }
-}
-
-class Transaction {
-  double value;
-  String description;
-  DateTime date;
-  bool isIncome;
-  Transaction({
-    required this.value,
-    required this.description,
-    required this.date,
-    required this.isIncome,
-  });
-}
+// CurrencyService moved para DDD. Usando Transaction entity do domínio.
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -42,7 +16,7 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  final List<Transaction> _transactions = [];
+  // Transactions and dollarValue are now provided by DashboardController (Provider)
   final _formKey = GlobalKey<FormState>();
   final _valueController = TextEditingController();
   final _descController = TextEditingController();
@@ -50,22 +24,12 @@ class _DashboardPageState extends State<DashboardPage> {
   DateTime? _selectedDate;
   bool _isIncome = true;
   int? _editingIndex;
-  double? _dollarValue;
   String? _dateError;
 
   @override
   void initState() {
     super.initState();
-    _fetchDollarValue();
-  }
-
-  Future<void> _fetchDollarValue() async {
-    try {
-      final value = await CurrencyService.getDollarValue();
-      setState(() {
-        _dollarValue = value;
-      });
-    } catch (_) {}
+    // A carga inicial é realizada pelo DashboardController quando o Provider é criado.
   }
 
   Future<void> _pickDate(BuildContext context) async {
@@ -86,7 +50,10 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _edit(int index) {
-    final t = _transactions[index];
+    final t = Provider.of<DashboardController>(
+      context,
+      listen: false,
+    ).transactions[index];
     setState(() {
       _editingIndex = index;
       _valueController.text = t.value.toString();
@@ -97,7 +64,7 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     setState(() {
       _dateError = null;
     });
@@ -141,35 +108,37 @@ class _DashboardPageState extends State<DashboardPage> {
         });
         return;
       }
-      final isDuplicate = _transactions.any(
-        (t) =>
-            t.value == value &&
-            t.description.trim() == desc &&
-            t.date == date &&
-            t.isIncome == _isIncome,
-      );
+      final isDuplicate =
+          Provider.of<DashboardController>(
+            context,
+            listen: false,
+          ).transactions.any(
+            (t) =>
+                t.value == value &&
+                t.description.trim() == desc &&
+                t.date == date &&
+                t.isIncome == _isIncome,
+          );
       if (_editingIndex == null && isDuplicate) {
         setState(() {
           _dateError = 'Transação idêntica já cadastrada';
         });
         return;
       }
+      final transaction = Transaction(
+        value: value,
+        description: desc,
+        date: date,
+        isIncome: _isIncome,
+      );
+      final controller = Provider.of<DashboardController>(
+        context,
+        listen: false,
+      );
       if (_editingIndex == null) {
-        _transactions.add(
-          Transaction(
-            value: value,
-            description: desc,
-            date: date,
-            isIncome: _isIncome,
-          ),
-        );
+        await controller.add(transaction);
       } else {
-        _transactions[_editingIndex!] = Transaction(
-          value: value,
-          description: desc,
-          date: date,
-          isIncome: _isIncome,
-        );
+        await controller.edit(_editingIndex!, transaction);
       }
       setState(() {
         _editingIndex = null;
@@ -182,9 +151,10 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  void _delete(int index) {
+  Future<void> _delete(int index) async {
+    final controller = Provider.of<DashboardController>(context, listen: false);
+    await controller.deleteAt(index);
     setState(() {
-      _transactions.removeAt(index);
       if (_editingIndex == index) {
         _editingIndex = null;
         _valueController.clear();
@@ -197,20 +167,30 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Provider.of<DashboardController>(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            if (_dollarValue != null)
+            if (controller.dollarValue != null)
               Text(
-                "1 USD = R\$ ${_dollarValue!.toStringAsFixed(2)}",
+                "1 USD = R\$ ${controller.dollarValue!.toStringAsFixed(2)}",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
+            if (controller.error != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Erro: ${controller.error}',
+                style: const TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
+            ],
             const SizedBox(height: 16),
             Center(
               child: ConstrainedBox(
@@ -249,30 +229,37 @@ class _DashboardPageState extends State<DashboardPage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Expanded(
-              child: _transactions.isEmpty
-                  ? const Center(child: Text('Nenhuma transação cadastrada'))
-                  : ListView.builder(
-                      itemCount: _transactions.length,
-                      itemBuilder: (context, i) {
-                        final t = _transactions[i];
-                        final valueInDollar = (_dollarValue != null)
-                            ? (t.value / _dollarValue!)
-                            : null;
-                        return TransactionListItem(
-                          icon: t.isIncome
-                              ? Icons.arrow_upward
-                              : Icons.arrow_downward,
-                          iconColor: t.isIncome ? Colors.green : Colors.red,
-                          title:
-                              '${t.isIncome ? 'Entrada' : 'Saída'}: R\$ ${t.value.toStringAsFixed(2)}',
-                          subtitle:
-                              '${t.description}\n${DateFormat('dd/MM/yyyy').format(t.date)}${valueInDollar != null ? '\n≈ US\$ ${valueInDollar.toStringAsFixed(2)}' : ''}',
-                          isThreeLine: true,
-                          onEdit: () => _edit(i),
-                          onDelete: () => _delete(i),
-                        );
-                      },
-                    ),
+              child: controller.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : (controller.transactions.isEmpty
+                        ? const Center(
+                            child: Text('Nenhuma transação cadastrada'),
+                          )
+                        : ListView.builder(
+                            itemCount: controller.transactions.length,
+                            itemBuilder: (context, i) {
+                              final t = controller.transactions[i];
+                              final valueInDollar =
+                                  (controller.dollarValue != null)
+                                  ? (t.value / controller.dollarValue!)
+                                  : null;
+                              return TransactionListItem(
+                                icon: t.isIncome
+                                    ? Icons.arrow_upward
+                                    : Icons.arrow_downward,
+                                iconColor: t.isIncome
+                                    ? Colors.green
+                                    : Colors.red,
+                                title:
+                                    '${t.isIncome ? 'Entrada' : 'Saída'}: R\$ ${t.value.toStringAsFixed(2)}',
+                                subtitle:
+                                    '${t.description}\n${DateFormat('dd/MM/yyyy').format(t.date)}${valueInDollar != null ? '\n≈ US\$ ${valueInDollar.toStringAsFixed(2)}' : ''}',
+                                isThreeLine: true,
+                                onEdit: () => _edit(i),
+                                onDelete: () => _delete(i),
+                              );
+                            },
+                          )),
             ),
           ],
         ),

@@ -79,9 +79,7 @@ class TransactionForm extends StatelessWidget {
                     if (value == null || value.isEmpty) {
                       return 'Informe a data';
                     }
-                    final regex = RegExp(
-                      newMethod,
-                    );
+                    final regex = RegExp(newMethod);
                     if (!regex.hasMatch(value)) {
                       return 'Formato inválido (dd/mm/aaaa)';
                     }
@@ -104,25 +102,28 @@ class TransactionForm extends StatelessWidget {
                 style: const TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),
-          Row(
-            children: [
-              Expanded(
-                child: RadioListTile<bool>(
-                  title: const Text('Entrada'),
-                  value: true,
-                  groupValue: isIncome,
-                  onChanged: (v) => onIncomeChanged(true),
+          RadioGroup<bool>(
+            groupValue: isIncome,
+            onChanged: (v) {
+              if (v == null) return;
+              onIncomeChanged(v);
+            },
+            child: Row(
+              children: [
+                Expanded(
+                  child: RadioListTile<bool>(
+                    title: const Text('Entrada'),
+                    value: true,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: RadioListTile<bool>(
-                  title: const Text('Saída'),
-                  value: false,
-                  groupValue: isIncome,
-                  onChanged: (v) => onIncomeChanged(false),
+                Expanded(
+                  child: RadioListTile<bool>(
+                    title: const Text('Saída'),
+                    value: false,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           ElevatedButton(onPressed: onSubmit, child: const Text('Salvar')),
         ],
