@@ -3,6 +3,9 @@ import 'package:mocktail/mocktail.dart';
 import 'package:financedashboard/data/datasources/remote/currency_remote_data_source.dart';
 import 'package:financedashboard/data/repositories/currency_repository_impl.dart';
 import 'package:financedashboard/data/models/currency_model.dart';
+import 'package:financedashboard/core/either.dart';
+import 'package:financedashboard/core/errors/failure.dart';
+import 'package:financedashboard/core/exceptions.dart';
 
 // Mock (simulação) da fonte de dados de moeda
 // Isso nos permite testar o repositório sem fazer chamadas reais à API
@@ -20,7 +23,7 @@ void main() {
   });
 
   group('Testes do Repositório de Moeda', () {
-    test('deve retornar o valor do dólar da fonte de dados remota', () async {
+    test('deve retornar Right com o valor do dólar quando bem-sucedido', () async {
       // Preparação
       final cotacaoEsperada = CurrencyModel(5.0);  // Simulamos uma cotação de R$ 5,00
       // Configuramos o mock para retornar nossa cotação quando solicitado
@@ -30,25 +33,53 @@ void main() {
       // Ação: Solicita o valor do dólar ao repositório
       final resultado = await repository.getDollarValue();
 
-      // Verificação
-      expect(resultado, cotacaoEsperada.value, 
-          reason: 'O valor retornado deve ser igual à cotação configurada');
+      // Verificação: Deve retornar Right contendo o valor
+      expect(resultado.isRight(), true, 
+          reason: 'Deve retornar Right quando bem-sucedido');
+      resultado.fold(
+        (failure) => fail('Não deveria retornar failure'),
+        (value) => expect(value, cotacaoEsperada.value,
+            reason: 'O valor retornado deve ser igual à cotação configurada'),
+      );
       // Confirma que o método foi chamado exatamente uma vez
       verify(() => mockDataSource.fetchDollarValue()).called(1);
     });
 
-    test('deve tratar erros da fonte de dados remota corretamente', () async {
+    test('deve retornar Left com NetworkFailure quando houver erro genérico', () async {
       // Preparação: Configuramos o mock para simular uma falha na API
       when(() => mockDataSource.fetchDollarValue())
           .thenThrow(Exception('Erro ao buscar cotação do dólar'));
 
-      // Ação e Verificação: O erro deve ser propagado adequadamente
-      expect(
-        () => repository.getDollarValue(),
-        throwsA(isA<Exception>()),
-        reason: 'Deve propagar o erro quando a fonte de dados falha',
+      // Ação: Solicita o valor do dólar ao repositório
+      final resultado = await repository.getDollarValue();
+
+      // Verificação: Deve retornar Left contendo um Failure
+      expect(resultado.isLeft(), true,
+          reason: 'Deve retornar Left quando houver erro');
+      resultado.fold(
+        (failure) => expect(failure, isA<NetworkFailure>(),
+            reason: 'Deve retornar NetworkFailure para erros genéricos'),
+        (value) => fail('Não deveria retornar sucesso'),
       );
       // Confirma que a tentativa de buscar o valor foi feita
+      verify(() => mockDataSource.fetchDollarValue()).called(1);
+    });
+
+    test('deve retornar Left com ServerFailure quando houver ServerException', () async {
+      // Preparação: Configuramos o mock para lançar ServerException
+      when(() => mockDataSource.fetchDollarValue())
+          .thenThrow(ServerException());
+
+      // Ação: Solicita o valor do dólar ao repositório
+      final resultado = await repository.getDollarValue();
+
+      // Verificação: Deve retornar Left com ServerFailure
+      expect(resultado.isLeft(), true);
+      resultado.fold(
+        (failure) => expect(failure, isA<ServerFailure>(),
+            reason: 'Deve retornar ServerFailure para ServerException'),
+        (value) => fail('Não deveria retornar sucesso'),
+      );
       verify(() => mockDataSource.fetchDollarValue()).called(1);
     });
   });

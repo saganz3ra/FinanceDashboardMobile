@@ -1,7 +1,7 @@
-import '../shared/widgets/organisms/register_form.dart';
+import '../../shared/widgets/organisms/register_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../shared/constants/colors.dart';
+import '../../shared/constants/colors.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -213,7 +213,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     // Aguarda um pequeno delay e garante que o widget ainda esteja montado
                     await Future.delayed(const Duration(milliseconds: 500));
                     if (!context.mounted) return;
-                    Navigator.of(context).pushReplacementNamed('/login');
+                    Navigator.of(context).pushReplacementNamed('/');
                   } else if (_birthDate == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(

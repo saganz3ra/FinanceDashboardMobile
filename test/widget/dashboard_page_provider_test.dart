@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:financedashboard/screens/dashboard_page.dart';
+import 'package:financedashboard/presentation/pages/dashboard_page.dart';
 import 'package:financedashboard/presentation/controllers/dashboard_controller.dart';
 import 'package:financedashboard/domain/usecases/get_transactions.dart';
 import 'package:financedashboard/domain/usecases/get_dollar_value.dart';

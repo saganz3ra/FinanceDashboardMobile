@@ -8,15 +8,8 @@ class UserRepositoryImpl implements UserRepository {
   UserRepositoryImpl({required this.localDataSource});
 
   @override
-  Future<void> saveUser(User user) async {
-    final model = UserModel(
-      name: user.name,
-      cpf: user.cpf,
-      email: user.email,
-      password: user.password,
-      phone: user.phone,
-      birthDate: user.birthDate,
-    );
+  Future<void> saveUser(User user, String password) async {
+    final model = UserModel.fromEntity(user, password);
     await localDataSource.saveUser(model);
   }
 
@@ -24,14 +17,7 @@ class UserRepositoryImpl implements UserRepository {
   Future<User?> getUser() async {
     final model = await localDataSource.getUser();
     if (model == null) return null;
-    return User(
-      name: model.name,
-      cpf: model.cpf,
-      email: model.email,
-      password: model.password,
-      phone: model.phone,
-      birthDate: model.birthDate,
-    );
+    return model.toEntity();
   }
 
   @override

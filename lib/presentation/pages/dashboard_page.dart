@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../presentation/controllers/dashboard_controller.dart';
-import '../shared/widgets/organisms/transaction_form.dart';
-import '../shared/widgets/molecules/transaction_list_item.dart';
+import '../controllers/dashboard_controller.dart';
+import '../../shared/widgets/organisms/transaction_form.dart';
+import '../../shared/widgets/molecules/transaction_list_item.dart';
 import 'package:financedashboard/domain/entities/transaction.dart';
 
 // CurrencyService moved para DDD. Usando Transaction entity do domínio.
@@ -170,7 +170,20 @@ class _DashboardPageState extends State<DashboardPage> {
     final controller = Provider.of<DashboardController>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Sair',
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/', (route) => false);
+            },
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

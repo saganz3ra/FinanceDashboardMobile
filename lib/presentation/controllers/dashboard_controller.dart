@@ -42,10 +42,20 @@ class DashboardController extends ChangeNotifier {
     notifyListeners();
     try {
       final txs = await _getTransactions.call();
-      final usd = await _getDollarValue.call();
+      final usdResult = await _getDollarValue.call();
+
       transactions = txs;
-      dollarValue = usd;
-      error = null;
+
+      usdResult.fold(
+        (failure) {
+          error = failure.message;
+          dollarValue = null;
+        },
+        (value) {
+          dollarValue = value;
+          error = null;
+        },
+      );
     } catch (e) {
       error = e.toString();
     } finally {

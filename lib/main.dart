@@ -103,7 +103,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        initialRoute: AppRoutes.home,
+        initialRoute: AppRoutes.login,
         routes: AppRoutes.routes,
         onGenerateRoute: (settings) {
           final builder = AppRoutes.routes[settings.name];

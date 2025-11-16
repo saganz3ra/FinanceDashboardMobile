@@ -1,3 +1,6 @@
+import '../../core/either.dart';
+import '../../core/errors/failure.dart';
+
 abstract class CurrencyRepository {
-  Future<double> getDollarValue();
+  Future<Either<Failure, double>> getDollarValue();
 }

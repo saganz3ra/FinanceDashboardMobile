@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 // import '../routes/app_routes.dart';
 // import '../shared/widgets/atoms/app_button.dart';
-import '../shared/constants/colors.dart';
-import '../shared/widgets/molecules/home_title.dart';
-import '../shared/widgets/molecules/home_button_group.dart';
+import '../../shared/constants/colors.dart';
+import '../../shared/widgets/molecules/home_title.dart';
+import '../../shared/widgets/molecules/home_button_group.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

@@ -5,7 +5,7 @@ class SaveUser {
   final UserRepository repository;
   SaveUser(this.repository);
 
-  Future<void> call(User user) async {
-    await repository.saveUser(user);
+  Future<void> call(User user, String password) async {
+    await repository.saveUser(user, password);
   }
 }

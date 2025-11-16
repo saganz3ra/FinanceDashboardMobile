@@ -1,6 +1,6 @@
-import '../shared/widgets/organisms/login_form.dart';
+import '../../shared/widgets/organisms/login_form.dart';
 import 'package:flutter/material.dart';
-import '../shared/constants/colors.dart';
+import '../../shared/constants/colors.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

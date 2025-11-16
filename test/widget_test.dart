@@ -10,36 +10,30 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:financedashboard/main.dart';
 
 void main() {
-  testWidgets('App deve iniciar e mostrar a tela inicial', (
+  testWidgets('App deve iniciar na tela de login', (
     WidgetTester tester,
   ) async {
     // Preparação: Constrói nossa aplicação
     await tester.pumpWidget(const MyApp());
 
-    // Verificação: Deve encontrar o título da tela inicial
+    // Verificação: Deve encontrar o título da tela de login
     expect(
-      find.text('Home'),
+      find.text('Login'),
       findsOneWidget,
-      reason: 'O título "Home" deve estar visível na AppBar',
+      reason: 'O título "Login" deve estar visível na AppBar',
     );
 
-    // Verificação: Deve encontrar o texto de boas-vindas
+    // Verificação: Deve encontrar campos de login
     expect(
-      find.text('Bem-vindo ao Finance Dashboard!'),
-      findsOneWidget,
-      reason: 'O texto de boas-vindas deve estar visível',
+      find.text('Email'),
+      findsWidgets,
+      reason: 'O campo de email deve estar visível',
     );
-
-    // Verificação: Deve encontrar os botões de navegação
+    
     expect(
-      find.text('Ir para Login'),
-      findsOneWidget,
-      reason: 'O botão de login deve estar visível',
-    );
-    expect(
-      find.text('Ir para Dashboard'),
-      findsOneWidget,
-      reason: 'O botão do dashboard deve estar visível',
+      find.text('Senha'),
+      findsWidgets,
+      reason: 'O campo de senha deve estar visível',
     );
   });
 }

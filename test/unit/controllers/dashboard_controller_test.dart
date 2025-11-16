@@ -7,6 +7,7 @@ import 'package:financedashboard/domain/usecases/get_dollar_value.dart';
 import 'package:financedashboard/domain/usecases/add_transaction.dart';
 import 'package:financedashboard/domain/usecases/edit_transaction.dart';
 import 'package:financedashboard/domain/usecases/delete_transaction.dart';
+import 'package:financedashboard/core/either.dart';
 
 class _MockGetTransactions extends Mock implements GetTransactions {}
 
@@ -53,7 +54,7 @@ void main() {
       ),
     ];
     when(() => getTransactions.call()).thenAnswer((_) async => txs);
-    when(() => getDollarValue.call()).thenAnswer((_) async => 5.0);
+    when(() => getDollarValue.call()).thenAnswer((_) async => const Right(5.0));
 
     // Act
     await controller.loadAll();
@@ -75,7 +76,7 @@ void main() {
     );
     when(() => addTransaction.call(tx)).thenAnswer((_) async {});
     when(() => getTransactions.call()).thenAnswer((_) async => [tx]);
-    when(() => getDollarValue.call()).thenAnswer((_) async => 4.8);
+    when(() => getDollarValue.call()).thenAnswer((_) async => const Right(4.8));
 
     // Act
     await controller.add(tx);
@@ -95,7 +96,7 @@ void main() {
     );
     when(() => editTransaction.call(0, tx)).thenAnswer((_) async {});
     when(() => getTransactions.call()).thenAnswer((_) async => [tx]);
-    when(() => getDollarValue.call()).thenAnswer((_) async => 4.7);
+    when(() => getDollarValue.call()).thenAnswer((_) async => const Right(4.7));
 
     // Act
     await controller.edit(0, tx);
@@ -109,7 +110,7 @@ void main() {
     // Arrange
     when(() => deleteTransaction.call(0)).thenAnswer((_) async {});
     when(() => getTransactions.call()).thenAnswer((_) async => []);
-    when(() => getDollarValue.call()).thenAnswer((_) async => 4.9);
+    when(() => getDollarValue.call()).thenAnswer((_) async => const Right(4.9));
 
     // Act
     await controller.deleteAt(0);
